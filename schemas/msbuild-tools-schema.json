@@ -1,0 +1,73 @@
+{
+    "description": "msbuild-tools configuration",
+
+    "definitions": {
+        "task": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "program": {
+                    "type": "string"
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "type":"string"
+                    }
+                },
+                "   ": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "program",
+                "args",
+                "cwd"
+            ]
+        },
+        "variables": {
+            "type": "object",
+            "patternProperties": {
+                "^[A-Za-z0-9_]+$" : {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "tasks": {
+            "type": "array",
+            "items": { 
+                "$ref": "#/definitions/task" 
+            }
+        }
+    },
+
+    "type": "object",
+    "properties": {
+        "solution": {
+            "type": "string",
+            "description": "path to solution file"
+        },
+        "preBuildTasks": { 
+            "$ref": "#/definitions/tasks" 
+        },
+        "postBuildTasks": { 
+            "$ref": "#/definitions/tasks" 
+        },
+        "debugConfigurations": { 
+            "$ref": "#/definitions/tasks" 
+        },
+        "variables": {
+            "$ref": "#/definitions/variables"
+        },
+        "env": {
+            "$ref": "#/definitions/variables"
+        }
+    },
+    "required": [
+        "solution"
+    ]
+}

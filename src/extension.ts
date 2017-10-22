@@ -315,14 +315,7 @@ class Extension
 
             proc.on('fail', (message:string) => 
             {
-                if( this.buildState === BuildState.STARTED )
-                {
-                    reject(new Error(message));
-                }
-                else
-                {
-                    resolve(proc);
-                }
+                reject(new Error(message));
             });
 
             proc.on('success', (message:string) => 

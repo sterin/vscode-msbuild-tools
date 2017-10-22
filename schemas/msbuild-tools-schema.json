@@ -51,6 +51,10 @@
             "type": "string",
             "description": "path to solution file"
         },
+        "verbosity" : {
+            "type": "string",
+            "enum": ["quiet", "minimal", "normal", "detailed", "diagnostic"]
+        },
         "preBuildTasks": { 
             "$ref": "#/definitions/tasks" 
         },

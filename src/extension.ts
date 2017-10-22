@@ -22,6 +22,7 @@ interface TaskConfiguration
 interface Configuration
 {
     solution: string;
+    verbosity: string;
     variables: Map<string,string>;
     env: Map<string, string>;
     preBuildTasks: TaskConfiguration[];
@@ -32,6 +33,7 @@ interface Configuration
 const DefaultConfiguration : Configuration = 
 {
     solution: null,
+    verbosity: "minimal",
     variables: new Map<string, string>(),
     env: new Map<string, string>(),
     preBuildTasks: [],
@@ -330,6 +332,8 @@ class Extension
         let args = [
             this.config.solution,
             "/m",
+            "/nologo",
+            `/verbosity:${this.config.verbosity}`,
             `/p:Configuration=${this.buildConfig}`
         ];
 

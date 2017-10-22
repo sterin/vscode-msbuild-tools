@@ -21,27 +21,26 @@ interface TaskConfiguration
 
 interface Configuration
 {
-    sdk: string;
-    workspace: string;
-    scheme: string;
+    solution: string;
     variables: Map<string,string>;
+    env: Map<string, string>;
+    preBuildTasks: TaskConfiguration[];
     postBuildTasks: TaskConfiguration[];
     debugConfigurations: TaskConfiguration[];
 }
 
 const DefaultConfiguration : Configuration = 
 {
-    sdk: null,
-    workspace: null,
-    scheme: null,
+    solution: null,
     variables: new Map<string, string>(),
+    env: new Map<string, string>(),
+    preBuildTasks: [],
     postBuildTasks: [],
     debugConfigurations: []
 };
 
 const BuildConfigurations: string[] = [
     "Debug",
-    "Profile",
     "Release"
 ];
 
@@ -57,6 +56,7 @@ interface SpawnOptions
     program: string;
     args: string[];
     cwd?: string;
+    env?: Map<string, string>;
 
     channel: vscode.OutputChannel;
     initChannel?: boolean;
@@ -71,6 +71,7 @@ function expand(e:expander.Expander, opts: SpawnOptions) : SpawnOptions
         program: e.expand(opts.program),
         args: e.expand(opts.args),
         cwd: e.expand(opts.cwd),
+        env: e.expand(opts.env),
 
         channel: opts.channel,
         initChannel: opts.initChannel,
@@ -83,22 +84,22 @@ function expand(e:expander.Expander, opts: SpawnOptions) : SpawnOptions
 class Extension
 {
     private schemaPath = 
-        path.join(this.context.extensionPath, "schemas", "xcodebuild-tools-schema.json");
+        path.join(this.context.extensionPath, "schemas", "msbuild-tools-schema.json");
 
     private readonly configFilePath :string = 
-        path.join(vscode.workspace.rootPath, ".vscode", "xcodebuild-tools.json");
+        path.join(vscode.workspace.rootPath, ".vscode", "msbuild-tools.json");
     
     private readonly statusBar = 
         new status.StatusBar();
 
     private diag : vscode.DiagnosticCollection = 
-        vscode.languages.createDiagnosticCollection('xcodebuild-tools');
+        vscode.languages.createDiagnosticCollection('msbuild-tools');
 
     private buildOutputChannel = 
-        vscode.window.createOutputChannel("xcodebuild-tools build");
+        vscode.window.createOutputChannel("msbuild-tools build");
 
     private runOutputChannel = 
-        vscode.window.createOutputChannel("xcodebuild-tools run");
+        vscode.window.createOutputChannel("msbuild-tools run");
 
     private config : Configuration = null;
 
@@ -113,26 +114,25 @@ class Extension
             'build', 
             'clean', 
             'debug',
-            'profile',
             'run', 
             'kill', 
             'selectBuildConfiguration', 
             'selectDebugConfiguration',
-            "openXcode"
+            "openVisualStudio"
         ];
 
         for( let name of commandNames)
         {
-            context.subscriptions.push( vscode.commands.registerCommand(`xcodebuild-tools.${name}`, ()=> 
+            context.subscriptions.push( vscode.commands.registerCommand(`msbuild-tools.${name}`, ()=> 
             {
                 if( !vscode.workspace.registerTextDocumentContentProvider )
                 {
-                    vscode.window.showErrorMessage('Extension [xcodebuild-tools] requires an open folder');
+                    vscode.window.showErrorMessage('Extension [msbuild-tools] requires an open folder');
                     return;
                 }
                 else if( !this.config )
                 {
-                    vscode.window.showErrorMessage('Extension [xcodebuild-tools] requires a correctly formatted .vscode/xcodebuild-tools.json');
+                    vscode.window.showErrorMessage('Extension [msbuild-tools] requires a correctly formatted .vscode/msbuild-tools.json');
                     return;
                 }
                 else
@@ -174,12 +174,17 @@ class Extension
                 config.variables = new Map<string, string>(util.entries(config.variables));
             }
 
+            if( config.env )
+            {
+                config.env = new Map<string, string>(util.entries(config.env));
+            }
+
             this.config = util.merge(DefaultConfiguration, config);
         }
         catch(e)
         {
             this.config = null;
-            vscode.window.showErrorMessage(`[xcodebuild-tools]: ${e.message}`);
+            vscode.window.showErrorMessage(`[msbuild-tools]: ${e.message}`);
         }
 
         this.updateStatus();
@@ -271,7 +276,7 @@ class Extension
 
     private spawn(args:SpawnOptions) : child_process.ChildProcess
     {
-        let proc = util.spawn(args.program, args.args, args.cwd);
+        let proc = util.spawn(args.program, args.args, args.cwd, args.env);
         this.buildProcess = proc;
 
         util.redirectToChannel(proc, args.channel, args.initChannel);
@@ -283,20 +288,20 @@ class Extension
 
         if( args.message )
         {
-            args.channel.appendLine(`[xcodebuild-tools]: ${args.message}`);
+            args.channel.appendLine(`[msbuild-tools]: ${args.message}`);
         }
 
-        args.channel.appendLine(`[xcodebuild-tools]: Running: ${args.program} ${args.args.join(" ")}`);
+        args.channel.appendLine(`[msbuild-tools]: Running: ${args.program} ${args.args.join(" ")}`);
 
         if( args.cwd )
         {
-            args.channel.appendLine(`[xcodebuild-tools]: Working Directory: ${args.cwd}`);
+            args.channel.appendLine(`[msbuild-tools]: Working Directory: ${args.cwd}`);
         }
 
         proc.on('terminated', (message:string) => 
         {
             this.buildProcess = null;
-            args.channel.appendLine(`[xcodebuild-tools]: ${message}`);
+            args.channel.appendLine(`[msbuild-tools]: ${message}`);
         });
 
         return proc;
@@ -327,26 +332,20 @@ class Extension
         });
     }
 
-    private async asyncSpawnXcodebuild(e:expander.Expander, extraArgs:string[]) : Promise<child_process.ChildProcess>
+    private async asyncSpawnMSBuild(e:expander.Expander, extraArgs:string[]) : Promise<child_process.ChildProcess>
     {
         let args = [
-            "-workspace", this.config.workspace, 
-            "-scheme", this.config.scheme, 
-            "-configuration", this.buildConfig,
+            this.config.solution,
+            "/m",
+            `/p:Configuration=${this.buildConfig}`
         ];
 
-        if( this.config.sdk )
-        {
-            args.push("-sdk", this.config.sdk);
-        }
-
-        args.push("CONFIGURATION_BUILD_DIR=${buildPath}");
-
         let opts: SpawnOptions= {
-            program: "xcodebuild",
+            program: "${MSBUILD}",
             args: args.concat(extraArgs),
+            env: this.config.env,
             channel: this.buildOutputChannel,
-            initChannel: true,
+            initChannel: false,
             parseOutput: true
         };
 
@@ -359,6 +358,7 @@ class Extension
         {
             program: task.program,
             args: task.args,
+            env: this.config.env,
             cwd: task.cwd,
             channel: this.buildOutputChannel,
             initChannel: false,
@@ -394,7 +394,15 @@ class Extension
 
     private async asyncBuild(e:expander.Expander)
     {
-        await this.asyncSpawnXcodebuild(e, []);
+        this.buildOutputChannel.clear();
+        this.buildOutputChannel.show();
+
+        for( let task of this.config.preBuildTasks )
+        {
+            await this.asyncSpawnTask(e, task);
+        }
+        
+        await this.asyncSpawnMSBuild(e, []);
 
         for( let task of this.config.postBuildTasks )
         {
@@ -418,7 +426,7 @@ class Extension
 
         await this.wrapBuild( async () => 
         {
-            await this.asyncSpawnXcodebuild(e, ['clean']);
+            await this.asyncSpawnMSBuild(e, [ '/t:Clean' ]);
         });
     }
 
@@ -434,52 +442,17 @@ class Extension
 
             const config = {
                 name: e.expand(dc.name),
+                type: "cppvsdbg",
+                request: "launch",
                 program:  e.expand(dc.program),
                 args:  e.expand(dc.args),
                 cwd:  e.expand(dc.cwd),
-                type: "cppdbg",
-                request: "launch",
+                env: util.to_object(e.expand(this.config.env)),
                 stopAtEntry: false,
-                environment: [],
-                externalConsole: false,
-                osx: { 
-                    MIMode: "lldb"
-                }
+                externalConsole: false
             };
 
             await vscode.commands.executeCommand("vscode.startDebug", config);
-        });
-    }
-
-    public async profile()
-    {
-        await this.wrapBuild( async () => 
-        {
-            const e = this.expander();
-
-            await this.asyncBuild(e);
-        
-            const dc = this.debugConfig;
-            
-            let proc = util.spawn(
-                "instruments",
-                [
-                    "-t", "Time Profiler",
-                    e.expand(dc.program)
-                ].concat(e.expand(dc.args)), 
-                e.expand(dc.cwd)
-            );
-
-            util.redirectToChannel(proc, this.runOutputChannel, true);
-
-            this.runOutputChannel.appendLine(
-                `[xcodebuild-tools] Running: instruments -t "Time Profiler" ${e.expand(dc.program)} ${e.expand(dc.args)}`
-            );
-
-            proc.on('terminated', (message:string) => 
-            {
-                this.runOutputChannel.append(`[xcodebuild-tools] ${message}`);
-            });
         });
     }
 
@@ -492,13 +465,13 @@ class Extension
             await this.asyncBuild(e);
         
             const dc = this.debugConfig;
-            let proc = util.spawn(e.expand(dc.program), e.expand(dc.args), e.expand(dc.cwd));
+            let proc = util.spawn(e.expand(dc.program), e.expand(dc.args), e.expand(dc.cwd), e.expand(this.config.env));
 
             util.redirectToChannel(proc, this.runOutputChannel, true);
 
             proc.on('terminated', (message:string) => 
             {
-                this.runOutputChannel.append(`[xcodebuild-tools] ${message}`);
+                this.runOutputChannel.append(`[msbuild-tools] ${message}`);
             });
         });
     }
@@ -537,10 +510,10 @@ class Extension
         }
     }
 
-    public openXcode() 
+    public openVisualStudio() 
     {
         const e = this.expander();
-        util.spawn('open', [e.expand(this.config.workspace)], null);
+        util.spawn(e.expand('${DEVENV}'), [e.expand(this.config.solution)], null, this.config.env);
     }
 }
 

@@ -1,16 +1,16 @@
 {
-  "name": "xcodebuild-tools",
-  "displayName": "Xcodebuild Tools",
-  "description": "Work with Xcode projects from inside Visual Studio Code",
-  "version": "0.0.4",
+  "name": "msbuild-tools",
+  "displayName": "msbuild Tools",
+  "description": "Work with MSBuild projects from inside Visual Studio Code",
+  "version": "0.0.1",
   "publisher": "sterin",
-  "homepage": "https://github.com/sterin/vscode-xcodebuild-tools/blob/master/README.md",
+  "homepage": "https://github.com/sterin/vscode-msbuild-tools/blob/master/README.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sterin/vscode-xcodebuild-tools.git"
+    "url": "https://github.com/sterin/vscode-msbuild-tools.git"
   },
   "bugs": {
-    "url": "https://github.com/sterin/vscode-xcodebuild-tools/issues"
+    "url": "https://github.com/sterin/vscode-msbuild-tools/issues"
   },
   "engines": {
     "vscode": "^1.10.0"
@@ -20,90 +20,89 @@
     "Other"
   ],
   "keywords": [
-    "Xcode",
-    "Xcodebuild",
-    "osx",
-    "macOS"
+    "Visual Studio",
+    "MSBuild",
+    "Windows"
   ],
   "activationEvents": [
-    "onCommand:xcodebuild-tools.build",
-    "onCommand:xcodebuild-tools.clean",
-    "onCommand:xcodebuild-tools.debug",
-    "onCommand:xcodebuild-tools.profile",
-    "onCommand:xcodebuild-tools.run",
-    "onCommand:xcodebuild-tools.kill",
-    "onCommand:xcodebuild-tools.selectBuildConfiguration",
-    "onCommand:xcodebuild-tools.selectDebugConfiguration",
-    "onCommand:xcodebuild-tools.openXcode",
-    "workspaceContains:.vscode/xcodebuild-tools.json"
+    "onCommand:msbuild-tools.build",
+    "onCommand:msbuild-tools.clean",
+    "onCommand:msbuild-tools.debug",
+    "onCommand:msbuild-tools.profile",
+    "onCommand:msbuild-tools.run",
+    "onCommand:msbuild-tools.kill",
+    "onCommand:msbuild-tools.selectBuildConfiguration",
+    "onCommand:msbuild-tools.selectDebugConfiguration",
+    "onCommand:msbuild-tools.open-visualstudio",
+    "workspaceContains:.vscode/msbuild-tools.json"
   ],
   "main": "./out/src/extension",
   "contributes": {
     "commands": [
       {
-        "command": "xcodebuild-tools.build",
+        "command": "msbuild-tools.build",
         "title": "Build",
-        "category": "Xcodebuild-tools"
+        "category": "msbuild-tools"
       },
       {
-        "command": "xcodebuild-tools.clean",
+        "command": "msbuild-tools.clean",
         "title": "Clean",
-        "category": "Xcodebuild-tools"
+        "category": "msbuild-tools"
       },
       {
-        "command": "xcodebuild-tools.debug",
+        "command": "msbuild-tools.debug",
         "title": "Launch Debug Session",
-        "category": "Xcodebuild-tools"
+        "category": "msbuild-tools"
       },
       {
-        "command": "xcodebuild-tools.profile",
+        "command": "msbuild-tools.profile",
         "title": "Profile Program",
-        "category": "Xcodebuild-tools"
+        "category": "msbuild-tools"
       },
       {
-        "command": "xcodebuild-tools.run",
+        "command": "msbuild-tools.run",
         "title": "Run without Debugging",
-        "category": "Xcodebuild-tools"
+        "category": "msbuild-tools"
       },
       {
-        "command": "xcodebuild-tools.kill",
+        "command": "msbuild-tools.kill",
         "title": "Kill Build",
-        "category": "Xcodebuild-tools"
+        "category": "msbuild-tools"
       },
       {
-        "command": "xcodebuild-tools.selectBuildConfiguration",
+        "command": "msbuild-tools.selectBuildConfiguration",
         "title": "Select Build Configuration",
-        "category": "Xcodebuild-tools"
+        "category": "msbuild-tools"
       },
       {
-        "command": "xcodebuild-tools.selectDebugConfiguration",
+        "command": "msbuild-tools.selectDebugConfiguration",
         "title": "Select Debug Configuration",
-        "category": "Xcodebuild-tools"
+        "category": "msbuild-tools"
       },
       {
-        "command": "xcodebuild-tools.openXcode",
-        "title": "Open Xcode",
-        "category": "Xcodebuild-tools"
+        "command": "msbuild-tools.openVisualStudio",
+        "title": "Open Visual Studio",
+        "category": "msbuild-tools"
       }
     ],
     "keybindings": [
       {
         "key": "f7",
-        "command": "xcodebuild-tools.build"
+        "command": "msbuild-tools.build"
       },
       {
         "key": "ctrl+f5",
-        "command": "xcodebuild-tools.debug"
+        "command": "msbuild-tools.debug"
       },
       {
         "key": "alt+shift+f5",
-        "command": "xcodebuild-tools.run"
+        "command": "msbuild-tools.run"
       }
     ],
     "jsonValidation": [
       {
-        "fileMatch": ".vscode/xcodebuild-tools.json",
-        "url": "./schemas/xcodebuild-tools-schema.json"
+        "fileMatch": ".vscode/msbuild-tools.json",
+        "url": "./schemas/msbuild-tools-schema.json"
       }
     ]
   },
@@ -117,7 +116,7 @@
     "@types/mocha": "^2.2.41",
     "@types/node": "^8.0.15",
     "mocha": "^3.4.2",
-    "typescript": "^2.4.2",
+    "typescript": "^2.5.3",
     "vscode": "^1.1.4"
   },
   "extensionDependencies": [

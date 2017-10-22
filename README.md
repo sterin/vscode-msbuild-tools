@@ -1,18 +1,19 @@
-# Xcodebuild-tools
+# msbuild-tools
 
-Work with Xcode projects from inside Visual Studio Code.
+Work with Visual Studio (MSBuild) projects from inside Visual Studio Code.
 
 Feedback is highy appreciated! Let me know if this works for you? Are there any showstopping bugs? Any features missing?
+
+(I should probably merge this is vscode-xbuild-tools when I have time)
 
 ## Caveats
 
 * First release, my first non-trivial TypeScript/JavaScript program - expect bugs, problems, and non-idiomatic code.
-* Only useful for macOS apps at this point.
-* Managing the project (adding files, changing settings, etc.) has to be done using Xcode itself.
+* Managing the project (adding files, changing settings, etc.) has to be done using Visual Studio itself.
 
 ## Features
 
-* Build/Clean/Debug/Run Xcode workspsaces from within vscode.
+* Build/Clean/Debug/Run Visual Studio solutions from within vscode.
 * Switch between configurations (Debug/Release)
 * Debug directly from vscode - easily define debug configuration.
 * Status bar items that make it easy to build, debug, switch build and debug configurations.
@@ -21,27 +22,22 @@ Feedback is highy appreciated! Let me know if this works for you? Are there any 
 
 In a new directory:
 
-1. Create a new Xcode command line project, with the original name `project`.
+1. Create a new Visual Studio command line project, with the original name `project` and a solution `project.sln'.
 
-2. Create a new Xcode workspace named `workspace` in the same directory.
-
-3. Create a new scheme named `build` inside the workspace and add `project` to the scheme.
-
-4. Create a configuration as a file named `.vscode/xcodebuild-tools.json`:
+2. Create a configuration as a file named `.vscode/msbuild-tools.json`:
 
 ```json
 {
-    "workspace": "${workspaceRoot}/workspace.xcworkspace",
-    "scheme": "build",
+    "solution": "${workspaceRoot}/project/project.sln",
     "variables": {
-        "ARG1": "argument 1",
-        "ARG2": "argument 2"
+        "MSBUILD": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/MSBuild.exe",
+        "DEVENV": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/devenv.com"
     },
     "postBuildTasks": [
         {
             "name": "Sleep for a few seconds",
-            "program": "sleep",
-            "args": [ "3" ],
+            "program": "cmd",
+            "args": [ "/c", "sleep 10" ],
             "cwd": "${workspaceRoot}"
         }
     ],
@@ -49,7 +45,7 @@ In a new directory:
         {
             "name": "test",
             "cwd": "${workspaceRoot}",
-            "program": "${buildPath}/project",
+            "program": "${buildPath}/project/${buildConfig}/hello.exe",
             "args": [
                 "${ARG1}",
                 "${ARG2}"
@@ -59,43 +55,9 @@ In a new directory:
 }
 ```
 
-5. Use `xcodebuild-tools` command to build, debug, run, clean, switch build configuration, and switch debug configurations.
+3. Use `msbuild-tools` command to build, debug, run, clean, switch build configuration, and switch debug configurations.
 
-6. Use the status bar to build, debug, switch configurations or kill the build.
-
-## iOS Example
-
-1. Create an iOS example similar to above, but for iOS.
-
-2. Install `ios-sim` using `npm`:
-
-```shell
-    npm install --global ios-sim
-```
-
-3. Use a configuration file similar to the following one:
-
-```json
-{
-    "sdk": "iphonesimulator10.3",
-    "workspace": "${workspaceRoot}/test.xcodeproj/project.xcworkspace",
-    "scheme": "test",
-    "debugConfigurations": [
-        {
-            "name": "Simulator",
-            "cwd": "${buildPath}",
-            "program": "ios-sim",
-            "args": [
-                "launch", "test.app/",
-                "--devicetypeid",  "com.apple.CoreSimulator.SimDeviceType.iPhone-7, 10.3"
-            ]
-        }        
-    ]
-}
-```
-
-4. Use `xcodebuild-tools` commands to build and run the project in the simulator.
-
+4. Use the status bar to build, debug, switch configurations or kill the build.
 
 ## Credits
 

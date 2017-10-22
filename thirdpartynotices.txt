@@ -1,7 +1,7 @@
 THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
-For vscode-xcodebuild-tool
+For vscode-msbuild-tool
 
-This project incorporates material from the project(s) listed below (collectively, “Third Party Code”).  The authors of vscode-xcodebuild-tools are not the original authors of the Third Party Code.  The original copyright notice and license under which The authors of vscode-xcodebuild-tools received such Third Party Code are set out below. This Third Party Code is licensed to you under their original license terms set forth below.  The author of vscode-xcodebuild-tools reserves all other rights not expressly granted, whether by implication, estoppel or otherwise.
+This project incorporates material from the project(s) listed below (collectively, “Third Party Code”).  The authors of vscode-msbuild-tools are not the original authors of the Third Party Code.  The original copyright notice and license under which The authors of vscode-msbuild-tools received such Third Party Code are set out below. This Third Party Code is licensed to you under their original license terms set forth below.  The author of vscode-msbuild-tools reserves all other rights not expressly granted, whether by implication, estoppel or otherwise.
  
 1.       Yo Code - Extension and Customization Generator 1.1.11 (https://github.com/Microsoft/vscode-generator-code)
 

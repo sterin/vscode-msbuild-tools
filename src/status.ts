@@ -23,25 +23,25 @@ export class StatusBar
 
     constructor()
     {
-        this.buildStatusItem.command = "xcodebuild-tools.build";
+        this.buildStatusItem.command = "msbuild-tools.build";
         this.buildStatusItem.tooltip = "Click to build the project";
-        this.buildStatusItem.text = "$(gear) xcodebuild:";
+        this.buildStatusItem.text = "$(gear) msbuild:";
 
-        this.buildConfigStatusItem.command = "xcodebuild-tools.selectBuildConfiguration";
+        this.buildConfigStatusItem.command = "msbuild-tools.selectBuildConfiguration";
         this.buildConfigStatusItem.tooltip = "Click to select the build configuration";
     
-        this.debugStatusItem.command = "xcodebuild-tools.debug";
+        this.debugStatusItem.command = "msbuild-tools.debug";
         this.debugStatusItem.tooltip = "Click to launch the debugger for the selected debug configuration";
         this.debugStatusItem.text = "$(bug)";
 
-        this.runStatusItem.command = "xcodebuild-tools.run";
+        this.runStatusItem.command = "msbuild-tools.run";
         this.runStatusItem.tooltip = "Click to run (without debugging) the selected debug configuration";
         this.runStatusItem.text = "$(triangle-right)";
 
-        this.debugConfigStatusItem.command = "xcodebuild-tools.selectDebugConfiguration";
+        this.debugConfigStatusItem.command = "msbuild-tools.selectDebugConfiguration";
         this.debugConfigStatusItem.tooltip = "Click to select the debug configuration";
 
-        this.killStatusItem.command = "xcodebuild-tools.kill";
+        this.killStatusItem.command = "msbuild-tools.kill";
         this.killStatusItem.tooltip = "Click to kill current build";
         this.killStatusItem.text = "$(x)";
     }

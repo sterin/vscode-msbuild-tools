@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the "vscode-msbuild-tools" extension will be documented in this file.
 
+## 0.0.4
+- Fixed parsing of compiler messages.
+
 ## 0.0.3
 - Add an optional "verbosity" argument to config file
 - Add /nologo argument to msbuild

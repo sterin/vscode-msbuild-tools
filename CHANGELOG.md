@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the "vscode-msbuild-tools" extension will be documented in this file.
 
+## 0.0.5
+- Fix typo in schema file.
+
 ## 0.0.4
 - Fixed parsing of compiler messages.
 

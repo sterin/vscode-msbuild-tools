@@ -18,6 +18,16 @@ Feedback is highy appreciated! Let me know if this works for you? Are there any 
 * Debug directly from vscode - easily define debug configuration.
 * Status bar items that make it easy to build, debug, switch build and debug configurations.
 
+## Demo
+
+1. Create a project in Visual Studio
+
+![Create a project in Visual Studio](gifs/vs-create-project.gif)
+
+2. Open the project in VSCode
+
+![msbuild-tools demo](gifs/msbuild-tools-demo.gif)
+
 ## Example
 
 In a new directory:

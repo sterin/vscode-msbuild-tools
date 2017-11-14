@@ -510,7 +510,7 @@ class Extension
     public openVisualStudio() 
     {
         const e = this.expander();
-        util.spawn(e.expand('${DEVENV}'), [e.expand(this.config.solution)], null, this.config.env);
+        util.spawn(e.expand('${DEVENV}'), [e.expand(this.config.solution)], null, e.expand(this.config.env));
     }
 }
 

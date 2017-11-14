@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to the "vscode-msbuild-tools" extension will be documented in this file.
 
+## 0.0.7
+- Fix a bug where variables used in environment variables provided to Visual Studio were not expanded.
+
+## 0.0.6
+- Added an animated GIF demo in the README.
+
 ## 0.0.5
 - Fix typo in schema file.
 

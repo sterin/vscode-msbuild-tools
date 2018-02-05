@@ -449,7 +449,7 @@ class Extension
                 externalConsole: false
             };
 
-            await vscode.commands.executeCommand("vscode.startDebug", config);
+            await vscode.debug.startDebugging(vscode.workspace.workspaceFolders![0], config);
         });
     }
 

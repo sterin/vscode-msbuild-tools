@@ -13,7 +13,7 @@
     "url": "https://github.com/sterin/vscode-msbuild-tools/issues"
   },
   "engines": {
-    "vscode": "^1.10.0"
+    "vscode": "^1.19.0"
   },
   "license": "SEE LICENSE IN LICENSE.md",
   "categories": [
@@ -116,8 +116,7 @@
     "@types/mocha": "^2.2.41",
     "@types/node": "^8.0.15",
     "mocha": "^3.4.2",
-    "typescript": "^2.5.3",
-    "vscode": "^1.1.4"
+    "vscode": "^1.1.10"
   },
   "extensionDependencies": [
     "ms-vscode.cpptools"

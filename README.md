@@ -30,44 +30,13 @@ Feedback is highy appreciated! Let me know if this works for you? Are there any 
 
 ## Example
 
-In a new directory:
+The example subdirectory of this repository contains a working example.
 
-1. Create a new Visual Studio command line project, with the original name `project` and a solution `project.sln'.
+1. Open Visual Studio code in `example/helloworld` and examine the file `.vscode/msbuild-tools.json`.
 
-2. Create a configuration as a file named `.vscode/msbuild-tools.json`:
+2. Use `msbuild-tools` command to build, debug, run, clean, switch build configuration, and switch debug configurations.
 
-```json
-{
-    "solution": "${workspaceRoot}/project/project.sln",
-    "variables": {
-        "MSBUILD": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/MSBuild.exe",
-        "DEVENV": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/devenv.com"
-    },
-    "postBuildTasks": [
-        {
-            "name": "Sleep for a few seconds",
-            "program": "cmd",
-            "args": [ "/c", "sleep 10" ],
-            "cwd": "${workspaceRoot}"
-        }
-    ],
-    "debugConfigurations": [
-        {
-            "name": "test",
-            "cwd": "${workspaceRoot}",
-            "program": "${buildPath}/project/${buildConfig}/hello.exe",
-            "args": [
-                "${ARG1}",
-                "${ARG2}"
-            ]
-        }
-    ] 
-}
-```
-
-3. Use `msbuild-tools` command to build, debug, run, clean, switch build configuration, and switch debug configurations.
-
-4. Use the status bar to build, debug, switch configurations or kill the build.
+3. Use the status bar to build, debug, switch configurations or kill the build.
 
 ## Credits
 

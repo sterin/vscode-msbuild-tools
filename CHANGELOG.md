@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "vscode-msbuild-tools" extension will be documented in this file.
 
+## 0.0.8
+- Fix debugging (switch to new `vscode.debug.startDebugging()`).
+- Added a working example (see `example/helloworld`).
+
 ## 0.0.7
 - Fix a bug where variables used in environment variables provided to Visual Studio were not expanded.
 

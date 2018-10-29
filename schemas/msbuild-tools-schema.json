@@ -61,6 +61,12 @@
         "postBuildTasks": { 
             "$ref": "#/definitions/tasks" 
         },
+        "buildConfigurations": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
         "debugConfigurations": { 
             "$ref": "#/definitions/tasks" 
         },

@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "configurations": [
         {
-            "name": "Launch Extension (xcode-sample)",
+            "name": "Launch Extension (msbuild-sample)",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",

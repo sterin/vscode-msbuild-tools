@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the "vscode-msbuild-tools" extension will be documented in this file.
 
+## 0.0.9
+- Add support for specifying build configuration (instead of the default Debug/Release) from msbuild-tools.json. Thanks to @ja-no.
+
 ## 0.0.8
 - Fix debugging (switch to new `vscode.debug.startDebugging()`).
 - Added a working example (see `example/helloworld`).

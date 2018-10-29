@@ -28,6 +28,7 @@ interface Configuration
     preBuildTasks: TaskConfiguration[];
     postBuildTasks: TaskConfiguration[];
     debugConfigurations: TaskConfiguration[];
+    buildConfigurations: string[];
 }
 
 const DefaultConfiguration : Configuration = 
@@ -38,13 +39,9 @@ const DefaultConfiguration : Configuration =
     env: new Map<string, string>(),
     preBuildTasks: [],
     postBuildTasks: [],
-    debugConfigurations: []
+    debugConfigurations: [],
+    buildConfigurations: ["Debug", "Release"]
 };
-
-const BuildConfigurations: string[] = [
-    "Debug",
-    "Release"
-];
 
 enum BuildState
 {
@@ -212,8 +209,8 @@ class Extension
     {
         return this.getState<string>(
             "buildConfig", 
-            (val:string) => BuildConfigurations.indexOf(val)!==-1, 
-            (key:string) => BuildConfigurations[0]
+            (val:string) => this.config.buildConfigurations.indexOf(val)!==-1, 
+            (key:string) => this.config.buildConfigurations[0]
         );
     }
 
@@ -484,7 +481,7 @@ class Extension
 
     public async selectBuildConfiguration()
     {
-        let choice = await vscode.window.showQuickPick(BuildConfigurations);
+        let choice = await vscode.window.showQuickPick(this.config.buildConfigurations);
         
         if( choice )
         {

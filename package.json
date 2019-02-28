@@ -32,6 +32,7 @@
     "onCommand:msbuild-tools.run",
     "onCommand:msbuild-tools.kill",
     "onCommand:msbuild-tools.selectBuildConfiguration",
+    "onCommand:msbuild-tools.selectPlatformConfiguration",
     "onCommand:msbuild-tools.selectDebugConfiguration",
     "onCommand:msbuild-tools.open-visualstudio",
     "workspaceContains:.vscode/msbuild-tools.json"

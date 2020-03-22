@@ -1,3 +1,5 @@
+![.github/workflows/build.yml](https://github.com/sterin/vscode-msbuild-tools/workflows/.github/workflows/build.yml/badge.svg)
+
 # msbuild-tools
 
 Work with Visual Studio (MSBuild) projects from inside Visual Studio Code.

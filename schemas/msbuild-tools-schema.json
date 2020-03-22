@@ -67,6 +67,12 @@
                 "type": "string"
             }
         },
+        "platformConfigurations": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
         "debugConfigurations": { 
             "$ref": "#/definitions/tasks" 
         },

@@ -361,7 +361,7 @@ class Extension
             `/p:Configuration=${this.buildConfig}`,
         ];
 
-        if( this.platformConfig !== "" )
+        if( this.platformConfig !== null )
         {
             args.push(`/p:Platform=${this.platformConfig}`);
         }

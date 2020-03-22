@@ -37,8 +37,7 @@ jobs:
         name: Package
         path: out-package/
 
-    # - name: Publish package
-    #   if: startsWith(github.event.ref, 'refs/tags')
-    #   env:
-    #   run: |
-    #     vsce publish
+    - name: Publish package
+      if: startsWith(github.event.ref, 'refs/tags')
+      run: |
+        vsce publish --pat ${{ secrets.PERSONAL_ACCESS_TOKEN }}

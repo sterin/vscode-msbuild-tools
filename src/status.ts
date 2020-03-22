@@ -53,7 +53,7 @@ export class StatusBar
         this.killStatusItem.text = "$(x)";
     }
 
-    public forallItems(f: (item:vscode.StatusBarItem)=>void)
+    public forAllItems(f: (item:vscode.StatusBarItem)=>void)
     {
         f(this.buildStatusItem);
         f(this.buildConfigStatusItem);
@@ -66,25 +66,39 @@ export class StatusBar
 
     public dispose()
     {
-        this.forallItems(i => i.dispose());
+        this.forAllItems(i => i.dispose());
     }
 
     public show()
     {
-        this.forallItems(i => i.show());
+        this.forAllItems(i => i.show());
     }
 
     public hide()
     {
-        this.forallItems(i => i.hide());
+        this.forAllItems(i => i.hide());
     }
 
     public update(buildConfig: string, debugConfig:string, platformConfig:string)
     {
         this.buildConfigStatusItem.text = buildConfig;
-        this.buildPlatformStatusItem.text = platformConfig !== "" ? platformConfig : "Default";
+        this.buildPlatformStatusItem.text = platformConfig;
         this.debugConfigStatusItem.text = debugConfig;
 
-        this.show();
+        this.forAllItems( (i) => 
+        {
+            if( debugConfig === null && ( i===this.debugStatusItem || i===this.runStatusItem || i===this.debugConfigStatusItem ) )
+            {
+                i.hide();
+            }
+            else if( platformConfig === null && i===this.buildPlatformStatusItem )
+            {
+                i.hide();
+            }
+            else
+            {
+                i.show();
+            }
+        });
     }
 }

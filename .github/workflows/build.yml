@@ -28,14 +28,14 @@ jobs:
     - name: Build pacakge
       run: |
         vsce package
-        mkdir out
-        mv *.vsix out/
+        mkdir out-pacakge
+        cp *.vsix out-package/
 
     - name: Upload pacakge artifact
       uses: actions/upload-artifact@v1
       with:
         name: Package
-        path: 
+        path: out-package/
 
     # - name: Publish package
     #   if: startsWith(github.event.ref, 'refs/tags')

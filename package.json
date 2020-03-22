@@ -2,7 +2,7 @@
   "name": "msbuild-tools",
   "displayName": "msbuild Tools",
   "description": "Work with MSBuild projects from inside Visual Studio Code",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "publisher": "sterin",
   "homepage": "https://github.com/sterin/vscode-msbuild-tools/blob/master/README.md",
   "repository": {

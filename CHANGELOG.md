@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to the "vscode-msbuild-tools" extension will be documented in this file.
 
+## 0.0.11
+
+- Bugfix: crash when platformConfigurations is not included in msbuild-tools.json.
+- Added the new platformConfigurations field to the msbuild-tools.json schema.
+- Added initial python script to build from the commmand line
+
 ## 0.0.10
 - Add support for specifying platform configuration (instead of whatever the default is) from msbuild-tools.json. Thanks to @Estivoo.
 - Make the status bar items behave more reasonably when debug, or platform configurations are missing from msbuilt-tools.json.

@@ -28,7 +28,7 @@ jobs:
     - name: Build pacakge
       run: |
         vsce package
-        mkdir out-pacakge
+        mkdir out-package
         cp *.vsix out-package/
 
     - name: Upload pacakge artifact

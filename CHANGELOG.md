@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "vscode-msbuild-tools" extension will be documented in this file.
 
+## 0.0.10
+- Add support for specifying platform configuration (instead of whatever the default is) from msbuild-tools.json. Thanks to @Estivoo.
+- Make the status bar items behave more reasonably when debug, or platform configurations are missing from msbuilt-tools.json.
+
 ## 0.0.9
 - Add support for specifying build configuration (instead of the default Debug/Release) from msbuild-tools.json. Thanks to @ja-no.
 

@@ -8,6 +8,10 @@
         "Debug",
         "Release"
     ],
+    "platformConfigurations": [
+        "x64",
+        "x86"
+    ],
     "preBuildTasks": [
         {
             "name": "Print a message",
@@ -31,5 +35,5 @@
             "program": "${workspaceRoot}/x64/${buildConfig}/helloworld.exe",
             "args": []
         }
-    ] 
+    ]
 }

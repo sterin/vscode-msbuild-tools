@@ -1,12 +1,16 @@
 import * as vscode from 'vscode';
+import { platform } from 'os';
 
-export class StatusBar 
+export class StatusBar
     implements vscode.Disposable
 {
     private buildStatusItem =
         vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5.04);
 
     private buildConfigStatusItem =
+        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5.03);
+
+    private buildPlatformStatusItem =
         vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5.03);
 
     private debugStatusItem =
@@ -29,7 +33,10 @@ export class StatusBar
 
         this.buildConfigStatusItem.command = "msbuild-tools.selectBuildConfiguration";
         this.buildConfigStatusItem.tooltip = "Click to select the build configuration";
-    
+
+        this.buildPlatformStatusItem.command = "msbuild-tools.selectPlatformConfiguration";
+        this.buildPlatformStatusItem.tooltip = "Click to select platform";
+
         this.debugStatusItem.command = "msbuild-tools.debug";
         this.debugStatusItem.tooltip = "Click to launch the debugger for the selected debug configuration";
         this.debugStatusItem.text = "$(bug)";
@@ -50,6 +57,7 @@ export class StatusBar
     {
         f(this.buildStatusItem);
         f(this.buildConfigStatusItem);
+        f(this.buildPlatformStatusItem);
         f(this.debugStatusItem);
         f(this.runStatusItem);
         f(this.debugConfigStatusItem);
@@ -71,9 +79,10 @@ export class StatusBar
         this.forallItems(i => i.hide());
     }
 
-    public update(buildConfig: string, debugConfig:string)
+    public update(buildConfig: string, debugConfig:string, platformConfig:string)
     {
         this.buildConfigStatusItem.text = buildConfig;
+        this.buildPlatformStatusItem.text = platformConfig !== "" ? platformConfig : "Default";
         this.debugConfigStatusItem.text = debugConfig;
 
         this.show();

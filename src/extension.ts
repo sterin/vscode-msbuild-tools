@@ -29,9 +29,10 @@ interface Configuration
     postBuildTasks: TaskConfiguration[];
     debugConfigurations: TaskConfiguration[];
     buildConfigurations: string[];
+    platformConfigurations: string[];
 }
 
-const DefaultConfiguration : Configuration = 
+const DefaultConfiguration : Configuration =
 {
     solution: null,
     verbosity: "minimal",
@@ -40,7 +41,8 @@ const DefaultConfiguration : Configuration =
     preBuildTasks: [],
     postBuildTasks: [],
     debugConfigurations: [],
-    buildConfigurations: ["Debug", "Release"]
+    buildConfigurations: ["Debug", "Release"],
+    platformConfigurations: [""]
 };
 
 enum BuildState
@@ -59,7 +61,7 @@ interface SpawnOptions
 
     channel: vscode.OutputChannel;
     initChannel?: boolean;
-    
+
     message?: string;
     parseOutput?: boolean;
 }
@@ -74,7 +76,7 @@ function expand(e:expander.Expander, opts: SpawnOptions) : SpawnOptions
 
         channel: opts.channel,
         initChannel: opts.initChannel,
-        
+
         message: e.expand(opts.message),
         parseOutput: opts.parseOutput
     };
@@ -82,22 +84,22 @@ function expand(e:expander.Expander, opts: SpawnOptions) : SpawnOptions
 
 class Extension
 {
-    private schemaPath = 
+    private schemaPath =
         path.join(this.context.extensionPath, "schemas", "msbuild-tools-schema.json");
 
-    private readonly configFilePath :string = 
+    private readonly configFilePath :string =
         path.join(vscode.workspace.rootPath, ".vscode", "msbuild-tools.json");
-    
-    private readonly statusBar = 
+
+    private readonly statusBar =
         new status.StatusBar();
 
-    private diag : vscode.DiagnosticCollection = 
+    private diag : vscode.DiagnosticCollection =
         vscode.languages.createDiagnosticCollection('msbuild-tools');
 
-    private buildOutputChannel = 
+    private buildOutputChannel =
         vscode.window.createOutputChannel("msbuild-tools build");
 
-    private runOutputChannel = 
+    private runOutputChannel =
         vscode.window.createOutputChannel("msbuild-tools run");
 
     private config : Configuration = null;
@@ -110,19 +112,20 @@ class Extension
     public constructor(private context: vscode.ExtensionContext)
     {
         const commandNames = [
-            'build', 
-            'clean', 
+            'build',
+            'clean',
             'debug',
-            'run', 
-            'kill', 
-            'selectBuildConfiguration', 
+            'run',
+            'kill',
+            'selectBuildConfiguration',
+            'selectPlatformConfiguration',
             'selectDebugConfiguration',
-            "openVisualStudio"
+            'openVisualStudio'
         ];
 
         for( let name of commandNames)
         {
-            context.subscriptions.push( vscode.commands.registerCommand(`msbuild-tools.${name}`, ()=> 
+            context.subscriptions.push( vscode.commands.registerCommand(`msbuild-tools.${name}`, ()=>
             {
                 if( !vscode.workspace.registerTextDocumentContentProvider )
                 {
@@ -190,8 +193,8 @@ class Extension
     }
 
     private getState<T>(
-        key: string, 
-        legal:(val:T)=>boolean, 
+        key: string,
+        legal:(val:T)=>boolean,
         otherwise:(key:string)=>T)
     {
         let val = this.context.workspaceState.get<T>(key);
@@ -208,8 +211,8 @@ class Extension
     get buildConfig() : string
     {
         return this.getState<string>(
-            "buildConfig", 
-            (val:string) => this.config.buildConfigurations.indexOf(val)!==-1, 
+            "buildConfig",
+            (val:string) => this.config.buildConfigurations.indexOf(val)!==-1,
             (key:string) => this.config.buildConfigurations[0]
         );
     }
@@ -220,11 +223,26 @@ class Extension
         this.updateStatus();
     }
 
+    get platformConfig() : string
+    {
+        return this.getState<string>(
+            "platformConfig",
+            (val:string) => this.config.platformConfigurations.indexOf(val)!==-1,
+            (key:string) => this.config.platformConfigurations[0]
+        );
+    }
+
+    set platformConfig(config: string)
+    {
+        this.context.workspaceState.update("platformConfig", config);
+        this.updateStatus();
+    }
+
     get debugConfigName() : string
     {
         return this.getState<string>(
-            "debugConfig", 
-            (val:string) => true, 
+            "debugConfig",
+            (val:string) => true,
             (key:string) => this.config.debugConfigurations.length > 0 ? this.config.debugConfigurations[0].name : null
         );
     }
@@ -245,12 +263,12 @@ class Extension
     {
         if( this.config )
         {
-            this.statusBar.update(this.buildConfig, this.debugConfigName);
+            this.statusBar.update(this.buildConfig, this.debugConfigName, this.platformConfig);
         }
         else
         {
             this.statusBar.hide();
-        }        
+        }
     }
 
     private expander() : expander.Expander
@@ -260,6 +278,7 @@ class Extension
         M.set('workspaceRoot', vscode.workspace.rootPath);
         M.set('buildRoot', '${workspaceRoot}/build');
         M.set('buildConfig', this.buildConfig);
+        M.set('platformConfig', this.platformConfig);
         M.set('buildPath', '${buildRoot}/${buildConfig}');
 
         for( let [v, val] of this.config.variables )
@@ -279,7 +298,7 @@ class Extension
         this.buildProcess = proc;
 
         util.redirectToChannel(proc, args.channel, args.initChannel);
-        
+
         if( args.parseOutput )
         {
             diagnostics.parseOutput(this.diag, proc.stdout);
@@ -297,7 +316,7 @@ class Extension
             args.channel.appendLine(`[msbuild-tools]: Working Directory: ${args.cwd}`);
         }
 
-        proc.on('terminated', (message:string) => 
+        proc.on('terminated', (message:string) =>
         {
             this.buildProcess = null;
             args.channel.appendLine(`[msbuild-tools]: ${message}`);
@@ -308,16 +327,16 @@ class Extension
 
     private async asyncSpawn(args:SpawnOptions)
     {
-        return new Promise<child_process.ChildProcess>((resolve, reject) => 
+        return new Promise<child_process.ChildProcess>((resolve, reject) =>
         {
             let proc = this.spawn(args);
 
-            proc.on('fail', (message:string) => 
+            proc.on('fail', (message:string) =>
             {
                 reject(new Error(message));
             });
 
-            proc.on('success', (message:string) => 
+            proc.on('success', (message:string) =>
             {
                 resolve(proc);
             });
@@ -331,8 +350,13 @@ class Extension
             "/m",
             "/nologo",
             `/verbosity:${this.config.verbosity}`,
-            `/p:Configuration=${this.buildConfig}`
+            `/p:Configuration=${this.buildConfig}`,
         ];
+
+        if( this.platformConfig !== "" )
+        {
+            args.push(`/p:Platform=${this.platformConfig}`);
+        }
 
         let opts: SpawnOptions= {
             program: "${MSBUILD}",
@@ -395,7 +419,7 @@ class Extension
         {
             await this.asyncSpawnTask(e, task);
         }
-        
+
         await this.asyncSpawnMSBuild(e, []);
 
         for( let task of this.config.postBuildTasks )
@@ -408,7 +432,7 @@ class Extension
     {
         const e = this.expander();
 
-        await this.wrapBuild( async () => 
+        await this.wrapBuild( async () =>
         {
             await this.asyncBuild(e);
         });
@@ -418,7 +442,7 @@ class Extension
     {
         const e = this.expander();
 
-        await this.wrapBuild( async () => 
+        await this.wrapBuild( async () =>
         {
             await this.asyncSpawnMSBuild(e, [ '/t:Clean' ]);
         });
@@ -426,12 +450,12 @@ class Extension
 
     public async debug()
     {
-        await this.wrapBuild( async () => 
+        await this.wrapBuild( async () =>
         {
             const e = this.expander();
 
             await this.asyncBuild(e);
-        
+
             const dc = this.debugConfig;
 
             const config = {
@@ -452,18 +476,18 @@ class Extension
 
     public async run()
     {
-        await this.wrapBuild( async () => 
+        await this.wrapBuild( async () =>
         {
             const e = this.expander();
 
             await this.asyncBuild(e);
-        
+
             const dc = this.debugConfig;
             let proc = util.spawn(e.expand(dc.program), e.expand(dc.args), e.expand(dc.cwd), e.expand(this.config.env));
 
             util.redirectToChannel(proc, this.runOutputChannel, true);
 
-            proc.on('terminated', (message:string) => 
+            proc.on('terminated', (message:string) =>
             {
                 this.runOutputChannel.append(`[msbuild-tools] ${message}`);
             });
@@ -482,10 +506,20 @@ class Extension
     public async selectBuildConfiguration()
     {
         let choice = await vscode.window.showQuickPick(this.config.buildConfigurations);
-        
+
         if( choice )
         {
             this.buildConfig = choice;
+        }
+    }
+
+    public async selectPlatformConfiguration()
+    {
+        let choice = await vscode.window.showQuickPick(this.config.platformConfigurations);
+
+        if( choice )
+        {
+            this.platformConfig = choice;
         }
     }
 
@@ -496,7 +530,7 @@ class Extension
         if ( items.length > 0 )
         {
             let choice = await vscode.window.showQuickPick(items);
-            
+
             if( choice )
             {
                 this.debugConfigName = choice;
@@ -504,19 +538,19 @@ class Extension
         }
     }
 
-    public openVisualStudio() 
+    public openVisualStudio()
     {
         const e = this.expander();
         util.spawn(e.expand('${DEVENV}'), [e.expand(this.config.solution)], null, e.expand(this.config.env));
     }
 }
 
-export async function activate(context: vscode.ExtensionContext) 
+export async function activate(context: vscode.ExtensionContext)
 {
     let ext = new Extension(context);
     await ext.setup();
 }
 
-export function deactivate() 
+export function deactivate()
 {
 }

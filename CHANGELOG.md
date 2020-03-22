@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "vscode-msbuild-tools" extension will be documented in this file.
 
+## 0.0.12
+
+- Removed Github Actions badge from README.md because it contains an SVG which is not accepted by the Visual Studio Code marketplace for security reasons.
+
 ## 0.0.11
 
 - Bugfix: crash when platformConfigurations is not included in msbuild-tools.json.

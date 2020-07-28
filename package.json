@@ -33,6 +33,7 @@
     "onCommand:msbuild-tools.kill",
     "onCommand:msbuild-tools.selectBuildConfiguration",
     "onCommand:msbuild-tools.selectPlatformConfiguration",
+    "onCommand:msbuild-tools.selectTargetConfiguration",
     "onCommand:msbuild-tools.selectDebugConfiguration",
     "onCommand:msbuild-tools.open-visualstudio",
     "workspaceContains:.vscode/msbuild-tools.json"
@@ -78,6 +79,16 @@
       {
         "command": "msbuild-tools.selectDebugConfiguration",
         "title": "Select Debug Configuration",
+        "category": "msbuild-tools"
+      },
+      {
+        "command": "msbuild-tools.selectPlatformConfiguration",
+        "title": "Select Platform Configuration",
+        "category": "msbuild-tools"
+      },
+      {
+        "command": "msbuild-tools.selectTargetConfiguration",
+        "title": "Select Target Configuration",
         "category": "msbuild-tools"
       },
       {

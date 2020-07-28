@@ -14,7 +14,7 @@
                 "args": {
                     "type": "array",
                     "items": {
-                        "type":"string"
+                        "type": "string"
                     }
                 },
                 "cwd": {
@@ -31,7 +31,7 @@
         "variables": {
             "type": "object",
             "patternProperties": {
-                "^[A-Za-z0-9_]+$" : {
+                "^[A-Za-z0-9_]+$": {
                     "type": "string"
                 }
             },
@@ -39,8 +39,8 @@
         },
         "tasks": {
             "type": "array",
-            "items": { 
-                "$ref": "#/definitions/task" 
+            "items": {
+                "$ref": "#/definitions/task"
             }
         }
     },
@@ -51,15 +51,15 @@
             "type": "string",
             "description": "path to solution file"
         },
-        "verbosity" : {
+        "verbosity": {
             "type": "string",
             "enum": ["quiet", "minimal", "normal", "detailed", "diagnostic"]
         },
-        "preBuildTasks": { 
-            "$ref": "#/definitions/tasks" 
+        "preBuildTasks": {
+            "$ref": "#/definitions/tasks"
         },
-        "postBuildTasks": { 
-            "$ref": "#/definitions/tasks" 
+        "postBuildTasks": {
+            "$ref": "#/definitions/tasks"
         },
         "buildConfigurations": {
             "type": "array",
@@ -73,8 +73,25 @@
                 "type": "string"
             }
         },
-        "debugConfigurations": { 
-            "$ref": "#/definitions/tasks" 
+        "targetConfigurations": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "debugConfigurations": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/tasks"
+                },
+                {
+                    "properties": {
+                        "projectName": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
         },
         "variables": {
             "$ref": "#/definitions/variables"

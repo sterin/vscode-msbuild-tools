@@ -13,6 +13,9 @@ export class StatusBar
     private buildPlatformStatusItem =
         vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5.03);
 
+    private buildTargetStatusItem =
+        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5.03);
+
     private debugStatusItem =
         vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5.021);
 
@@ -37,6 +40,9 @@ export class StatusBar
         this.buildPlatformStatusItem.command = "msbuild-tools.selectPlatformConfiguration";
         this.buildPlatformStatusItem.tooltip = "Click to select platform";
 
+        this.buildTargetStatusItem.command = "msbuild-tools.selectTargetConfiguration";
+        this.buildTargetStatusItem.tooltip = "Click to select target";
+
         this.debugStatusItem.command = "msbuild-tools.debug";
         this.debugStatusItem.tooltip = "Click to launch the debugger for the selected debug configuration";
         this.debugStatusItem.text = "$(bug)";
@@ -53,11 +59,12 @@ export class StatusBar
         this.killStatusItem.text = "$(x)";
     }
 
-    public forAllItems(f: (item:vscode.StatusBarItem)=>void)
+    public forAllItems(f: (item: vscode.StatusBarItem) => void)
     {
         f(this.buildStatusItem);
         f(this.buildConfigStatusItem);
         f(this.buildPlatformStatusItem);
+        f(this.buildTargetStatusItem);
         f(this.debugStatusItem);
         f(this.runStatusItem);
         f(this.debugConfigStatusItem);
@@ -79,19 +86,24 @@ export class StatusBar
         this.forAllItems(i => i.hide());
     }
 
-    public update(buildConfig: string, debugConfig:string, platformConfig:string)
+    public update(buildConfig: string, debugConfig: string, platformConfig: string, targetConfig: string)
     {
         this.buildConfigStatusItem.text = buildConfig;
         this.buildPlatformStatusItem.text = platformConfig;
+        this.buildTargetStatusItem.text = targetConfig;
         this.debugConfigStatusItem.text = debugConfig;
 
-        this.forAllItems( (i) => 
+        this.forAllItems((i) =>
         {
-            if( debugConfig === null && ( i===this.debugStatusItem || i===this.runStatusItem || i===this.debugConfigStatusItem ) )
+            if(debugConfig === null && (i === this.debugStatusItem || i === this.runStatusItem || i === this.debugConfigStatusItem))
             {
                 i.hide();
             }
-            else if( platformConfig === null && i===this.buildPlatformStatusItem )
+            else if(platformConfig === null && i === this.buildPlatformStatusItem)
+            {
+                i.hide();
+            }
+            else if(targetConfig === null && i === this.buildTargetStatusItem)
             {
                 i.hide();
             }

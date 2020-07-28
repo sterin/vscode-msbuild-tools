@@ -19,20 +19,27 @@ interface TaskConfiguration
     cwd: string;
 }
 
+interface DebugConfiguration extends TaskConfiguration
+{
+    projectName: string;
+}
+
 interface Configuration
 {
     solution: string;
     verbosity: string;
-    variables: Map<string,string>;
+    variables: Map<string, string>;
     env: Map<string, string>;
     preBuildTasks: TaskConfiguration[];
     postBuildTasks: TaskConfiguration[];
-    debugConfigurations: TaskConfiguration[];
+    debugConfigurations: DebugConfiguration[];
     buildConfigurations: string[];
     platformConfigurations: string[];
+    targetConfigurations: string[];
 }
 
-const DefaultConfiguration : Configuration =
+const nullTargetPlaceholder = "null";
+const DefaultConfiguration: Configuration =
 {
     solution: null,
     verbosity: "minimal",
@@ -42,7 +49,8 @@ const DefaultConfiguration : Configuration =
     postBuildTasks: [],
     debugConfigurations: [],
     buildConfigurations: ["Debug", "Release"],
-    platformConfigurations: []
+    platformConfigurations: [],
+    targetConfigurations: [nullTargetPlaceholder, "Build", "Rebuild", "Clean"]
 };
 
 enum BuildState
@@ -66,7 +74,7 @@ interface SpawnOptions
     parseOutput?: boolean;
 }
 
-function expand(e:expander.Expander, opts: SpawnOptions) : SpawnOptions
+function expand(e: expander.Expander, opts: SpawnOptions): SpawnOptions
 {
     return {
         program: e.expand(opts.program),
@@ -87,13 +95,13 @@ class Extension
     private schemaPath =
         path.join(this.context.extensionPath, "schemas", "msbuild-tools-schema.json");
 
-    private readonly configFilePath :string =
+    private readonly configFilePath: string =
         path.join(vscode.workspace.rootPath, ".vscode", "msbuild-tools.json");
 
     private readonly statusBar =
         new status.StatusBar();
 
-    private diag : vscode.DiagnosticCollection =
+    private diag: vscode.DiagnosticCollection =
         vscode.languages.createDiagnosticCollection('msbuild-tools');
 
     private buildOutputChannel =
@@ -102,9 +110,9 @@ class Extension
     private runOutputChannel =
         vscode.window.createOutputChannel("msbuild-tools run");
 
-    private config : Configuration = null;
+    private config: Configuration = null;
 
-    private addDisposable(d: vscode.Disposable) : void
+    private addDisposable(d: vscode.Disposable): void
     {
         this.context.subscriptions.push(d);
     }
@@ -119,20 +127,21 @@ class Extension
             'kill',
             'selectBuildConfiguration',
             'selectPlatformConfiguration',
+            'selectTargetConfiguration',
             'selectDebugConfiguration',
             'openVisualStudio'
         ];
 
-        for( let name of commandNames)
+        for(let name of commandNames)
         {
-            context.subscriptions.push( vscode.commands.registerCommand(`msbuild-tools.${name}`, ()=>
+            context.subscriptions.push(vscode.commands.registerCommand(`msbuild-tools.${name}`, () =>
             {
-                if( !vscode.workspace.registerTextDocumentContentProvider )
+                if(!vscode.workspace.registerTextDocumentContentProvider)
                 {
                     vscode.window.showErrorMessage('Extension [msbuild-tools] requires an open folder');
                     return;
                 }
-                else if( !this.config )
+                else if(!this.config)
                 {
                     vscode.window.showErrorMessage('Extension [msbuild-tools] requires a correctly formatted .vscode/msbuild-tools.json');
                     return;
@@ -145,19 +154,19 @@ class Extension
         }
 
         const configWatcher = vscode.workspace.createFileSystemWatcher(this.configFilePath);
-        this.addDisposable( configWatcher );
+        this.addDisposable(configWatcher);
 
-        this.addDisposable( configWatcher.onDidCreate((uri : vscode.Uri) => this.reloadConfig(uri.fsPath)) );
-        this.addDisposable( configWatcher.onDidChange((uri : vscode.Uri) => this.reloadConfig(uri.fsPath)) );
-        this.addDisposable( configWatcher.onDidDelete((uri : vscode.Uri) => this.reloadConfig(uri.fsPath)) );
+        this.addDisposable(configWatcher.onDidCreate((uri: vscode.Uri) => this.reloadConfig(uri.fsPath)));
+        this.addDisposable(configWatcher.onDidChange((uri: vscode.Uri) => this.reloadConfig(uri.fsPath)));
+        this.addDisposable(configWatcher.onDidDelete((uri: vscode.Uri) => this.reloadConfig(uri.fsPath)));
 
-        this.addDisposable( this.statusBar );
-        this.addDisposable( this.diag );
-        this.addDisposable( this.buildOutputChannel );
-        this.addDisposable( this.runOutputChannel );
+        this.addDisposable(this.statusBar);
+        this.addDisposable(this.diag);
+        this.addDisposable(this.buildOutputChannel);
+        this.addDisposable(this.runOutputChannel);
     }
 
-    private validateConfig : ajv.ValidateFunction;
+    private validateConfig: ajv.ValidateFunction;
 
     public async setup()
     {
@@ -171,12 +180,12 @@ class Extension
         {
             let config = await util.readJSON(fileName, this.validateConfig);
 
-            if( config.variables )
+            if(config.variables)
             {
                 config.variables = new Map<string, string>(util.entries(config.variables));
             }
 
-            if( config.env )
+            if(config.env)
             {
                 config.env = new Map<string, string>(util.entries(config.env));
             }
@@ -194,18 +203,18 @@ class Extension
 
     private getState<T>(
         key: string,
-        legal:(val:T)=>boolean,
-        otherwise:(key:string)=>T,
-        valid:()=>boolean=()=>true)
+        legal: (val: T) => boolean,
+        otherwise: (key: string) => T,
+        valid: () => boolean = () => true)
     {
-        if( !valid() )
+        if(!valid())
         {
             return null;
         }
 
         let val = this.context.workspaceState.get<T>(key);
 
-        if( !val || !legal(val) )
+        if(!val || !legal(val))
         {
             val = otherwise(key);
             this.context.workspaceState.update(key, val);
@@ -214,12 +223,12 @@ class Extension
         return val;
     }
 
-    get buildConfig() : string
+    get buildConfig(): string
     {
         return this.getState<string>(
             "buildConfig",
-            (val:string) => this.config.buildConfigurations.indexOf(val)!==-1,
-            (key:string) => this.config.buildConfigurations[0]
+            (val: string) => this.config.buildConfigurations.indexOf(val) !== -1,
+            (key: string) => this.config.buildConfigurations[0]
         );
     }
 
@@ -229,12 +238,12 @@ class Extension
         this.updateStatus();
     }
 
-    get platformConfig() : string
+    get platformConfig(): string
     {
         return this.getState<string>(
             "platformConfig",
-            (val:string) => this.config.platformConfigurations.indexOf(val)!==-1,
-            (key:string) => this.config.platformConfigurations[0],
+            (val: string) => this.config.platformConfigurations.indexOf(val) !== -1,
+            (key: string) => this.config.platformConfigurations[0],
             () => this.config.platformConfigurations.length > 0
         );
     }
@@ -245,12 +254,28 @@ class Extension
         this.updateStatus();
     }
 
-    get debugConfigName() : string
+    get targetConfig(): string
+    {
+        return this.getState<string>(
+            "targetConfig",
+            (val: string) => this.config.targetConfigurations.indexOf(val) !== -1,
+            (key: string) => this.config.targetConfigurations[0],
+            () => this.config.targetConfigurations.length > 0
+        );
+    }
+
+    set targetConfig(config: string)
+    {
+        this.context.workspaceState.update("targetConfig", config);
+        this.updateStatus();
+    }
+
+    get debugConfigName(): string
     {
         return this.getState<string>(
             "debugConfig",
-            (val:string) => this.config.debugConfigurations.some( (t) => t.name==val ),
-            (key:string) => this.config.debugConfigurations[0].name,
+            (val: string) => this.config.debugConfigurations.some((t) => t.name == val),
+            (key: string) => this.config.debugConfigurations[0].name,
             () => this.config.debugConfigurations.length > 0
         );
     }
@@ -261,17 +286,17 @@ class Extension
         this.updateStatus();
     }
 
-    get debugConfig() : TaskConfiguration
+    get debugConfig(): DebugConfiguration
     {
         let name = this.debugConfigName;
-        return this.config.debugConfigurations.find( dc => dc.name===name );
+        return this.config.debugConfigurations.find(dc => dc.name === name);
     }
 
     private updateStatus()
     {
-        if( this.config )
+        if(this.config)
         {
-            this.statusBar.update(this.buildConfig, this.debugConfigName, this.platformConfig);
+            this.statusBar.update(this.buildConfig, this.debugConfigName, this.platformConfig, this.targetConfig);
         }
         else
         {
@@ -279,7 +304,7 @@ class Extension
         }
     }
 
-    private expander() : expander.Expander
+    private expander(): expander.Expander
     {
         const M = new Map<string, string>();
 
@@ -287,9 +312,10 @@ class Extension
         M.set('buildRoot', '${workspaceRoot}/build');
         M.set('buildConfig', this.buildConfig);
         M.set('platformConfig', this.platformConfig);
+        M.set('targetConfig', this.targetConfig);
         M.set('buildPath', '${buildRoot}/${buildConfig}');
 
-        for( let [v, val] of this.config.variables )
+        for(let [v, val] of this.config.variables)
         {
             M.set(v, val);
         }
@@ -297,34 +323,34 @@ class Extension
         return new expander.Expander(M);
     }
 
-    private buildState : BuildState = BuildState.IDLE;
-    private buildProcess : child_process.ChildProcess = null;
+    private buildState: BuildState = BuildState.IDLE;
+    private buildProcess: child_process.ChildProcess = null;
 
-    private spawn(args:SpawnOptions) : child_process.ChildProcess
+    private spawn(args: SpawnOptions): child_process.ChildProcess
     {
         let proc = util.spawn(args.program, args.args, args.cwd, args.env);
         this.buildProcess = proc;
 
         util.redirectToChannel(proc, args.channel, args.initChannel);
 
-        if( args.parseOutput )
+        if(args.parseOutput)
         {
             diagnostics.parseOutput(this.diag, proc.stdout);
         }
 
-        if( args.message )
+        if(args.message)
         {
             args.channel.appendLine(`[msbuild-tools]: ${args.message}`);
         }
 
         args.channel.appendLine(`[msbuild-tools]: Running: ${args.program} ${args.args.join(" ")}`);
 
-        if( args.cwd )
+        if(args.cwd)
         {
             args.channel.appendLine(`[msbuild-tools]: Working Directory: ${args.cwd}`);
         }
 
-        proc.on('terminated', (message:string) =>
+        proc.on('terminated', (message: string) =>
         {
             this.buildProcess = null;
             args.channel.appendLine(`[msbuild-tools]: ${message}`);
@@ -333,25 +359,25 @@ class Extension
         return proc;
     }
 
-    private async asyncSpawn(args:SpawnOptions)
+    private async asyncSpawn(args: SpawnOptions)
     {
         return new Promise<child_process.ChildProcess>((resolve, reject) =>
         {
             let proc = this.spawn(args);
 
-            proc.on('fail', (message:string) =>
+            proc.on('fail', (message: string) =>
             {
                 reject(new Error(message));
             });
 
-            proc.on('success', (message:string) =>
+            proc.on('success', (message: string) =>
             {
                 resolve(proc);
             });
         });
     }
 
-    private async asyncSpawnMSBuild(e:expander.Expander, extraArgs:string[]) : Promise<child_process.ChildProcess>
+    private async asyncSpawnMSBuild(e: expander.Expander, extraArgs: string[]): Promise<child_process.ChildProcess>
     {
         let args = [
             this.config.solution,
@@ -361,12 +387,12 @@ class Extension
             `/p:Configuration=${this.buildConfig}`,
         ];
 
-        if( this.platformConfig !== null )
+        if(this.platformConfig !== null)
         {
             args.push(`/p:Platform=${this.platformConfig}`);
         }
 
-        let opts: SpawnOptions= {
+        let opts: SpawnOptions = {
             program: "${MSBUILD}",
             args: args.concat(extraArgs),
             env: this.config.env,
@@ -378,7 +404,7 @@ class Extension
         return await this.asyncSpawn(expand(e, opts));
     }
 
-    private async asyncSpawnTask(e:expander.Expander, task: TaskConfiguration) : Promise<child_process.ChildProcess>
+    private async asyncSpawnTask(e: expander.Expander, task: TaskConfiguration): Promise<child_process.ChildProcess>
     {
         let args: SpawnOptions =
         {
@@ -388,17 +414,17 @@ class Extension
             cwd: task.cwd,
             channel: this.buildOutputChannel,
             initChannel: false,
-            message: `Runnning Task: ${task.name}`
+            message: `Running Task: ${task.name}`
         };
 
         return await this.asyncSpawn(expand(e, args));
     }
 
-    private async wrapBuild<T>( f: () => T ) : Promise<T|null>
+    private async wrapBuild<T>(f: () => T): Promise<T | null>
     {
         vscode.workspace.saveAll();
 
-        if( this.buildState !== BuildState.IDLE )
+        if(this.buildState !== BuildState.IDLE)
         {
             return null;
         }
@@ -418,19 +444,25 @@ class Extension
         }
     }
 
-    private async asyncBuild(e:expander.Expander)
+    private async asyncBuild(e: expander.Expander)
     {
         this.buildOutputChannel.clear();
         this.buildOutputChannel.show();
 
-        for( let task of this.config.preBuildTasks )
+        for(let task of this.config.preBuildTasks)
         {
             await this.asyncSpawnTask(e, task);
         }
 
-        await this.asyncSpawnMSBuild(e, []);
+        let target = this.targetConfig && this.targetConfig.trim().toLowerCase() != nullTargetPlaceholder ? this.targetConfig : '';
+        if(this.debugConfig.projectName)
+        {
+            target = this.debugConfig.projectName + (target ? `:${target}` : '');
+        }
 
-        for( let task of this.config.postBuildTasks )
+        await this.asyncSpawnMSBuild(e, target ? [`/t:${target}`] : []);
+
+        for(let task of this.config.postBuildTasks)
         {
             await this.asyncSpawnTask(e, task);
         }
@@ -440,7 +472,7 @@ class Extension
     {
         const e = this.expander();
 
-        await this.wrapBuild( async () =>
+        await this.wrapBuild(async () =>
         {
             await this.asyncBuild(e);
         });
@@ -450,15 +482,15 @@ class Extension
     {
         const e = this.expander();
 
-        await this.wrapBuild( async () =>
+        await this.wrapBuild(async () =>
         {
-            await this.asyncSpawnMSBuild(e, [ '/t:Clean' ]);
+            await this.asyncSpawnMSBuild(e, ['/t:Clean']);
         });
     }
 
     public async debug()
     {
-        await this.wrapBuild( async () =>
+        await this.wrapBuild(async () =>
         {
             const e = this.expander();
 
@@ -470,9 +502,9 @@ class Extension
                 name: e.expand(dc.name),
                 type: "cppvsdbg",
                 request: "launch",
-                program:  e.expand(dc.program),
-                args:  e.expand(dc.args),
-                cwd:  e.expand(dc.cwd),
+                program: e.expand(dc.program),
+                args: e.expand(dc.args),
+                cwd: e.expand(dc.cwd),
                 env: util.to_object(e.expand(this.config.env)),
                 stopAtEntry: false,
                 externalConsole: false
@@ -484,7 +516,7 @@ class Extension
 
     public async run()
     {
-        await this.wrapBuild( async () =>
+        await this.wrapBuild(async () =>
         {
             const e = this.expander();
 
@@ -495,7 +527,7 @@ class Extension
 
             util.redirectToChannel(proc, this.runOutputChannel, true);
 
-            proc.on('terminated', (message:string) =>
+            proc.on('terminated', (message: string) =>
             {
                 this.runOutputChannel.append(`[msbuild-tools] ${message}`);
             });
@@ -504,7 +536,7 @@ class Extension
 
     public kill()
     {
-        if( this.buildState === BuildState.STARTED && this.buildProcess !== null )
+        if(this.buildState === BuildState.STARTED && this.buildProcess !== null)
         {
             this.buildState = BuildState.KILLED;
             this.buildProcess.kill("SIGTERM");
@@ -515,7 +547,7 @@ class Extension
     {
         let choice = await vscode.window.showQuickPick(this.config.buildConfigurations);
 
-        if( choice )
+        if(choice)
         {
             this.buildConfig = choice;
         }
@@ -525,21 +557,31 @@ class Extension
     {
         let choice = await vscode.window.showQuickPick(this.config.platformConfigurations);
 
-        if( choice )
+        if(choice)
         {
             this.platformConfig = choice;
         }
     }
 
+    public async selectTargetConfiguration()
+    {
+        let choice = await vscode.window.showQuickPick(this.config.targetConfigurations);
+
+        if(choice)
+        {
+            this.targetConfig = choice;
+        }
+    }
+
     public async selectDebugConfiguration()
     {
-        let items = this.config.debugConfigurations.map( dc => dc.name );
+        let items = this.config.debugConfigurations.map(dc => dc.name);
 
-        if ( items.length > 0 )
+        if(items.length > 0)
         {
             let choice = await vscode.window.showQuickPick(items);
 
-            if( choice )
+            if(choice)
             {
                 this.debugConfigName = choice;
             }

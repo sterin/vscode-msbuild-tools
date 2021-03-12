@@ -388,7 +388,7 @@ class Extension
             cwd: task.cwd,
             channel: this.buildOutputChannel,
             initChannel: false,
-            message: `Runnning Task: ${task.name}`
+            message: `Running Task: ${task.name}`
         };
 
         return await this.asyncSpawn(expand(e, args));
